@@ -5,54 +5,67 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
-// 🧠 NORMALIZAR NOMBRE (CLAVE)
+// 🧠 ALIAS (CLAVE DEL SISTEMA)
+const aliases = {
+  "Nacional": "cd-nacional",
+  "Marítimo": "cs-maritimo",
+  "Paços de Ferreira": "pacos-de-ferreira",
+  "Tondela": "cd-tondela"
+};
+
+// 🧠 NORMALIZAR NOMBRE
 function formatName(name) {
   return name
     .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar tildes
     .replace(/\s+/g, "-")
     .replace(/[^\w-]/g, "")
-    .replace(/fc|cf|afc|sc/g, "")
+    .replace(/fc|cf|sc|cd|cs/g, "")
     .trim();
 }
 
-// 🟢 1. INTENTAR DESDE GITHUB
+// 🟢 GITHUB
 async function getGithubLogo(team) {
-  const formatted = formatName(team);
+  let formatted = aliases[team] || formatName(team);
 
   const url = `https://raw.githubusercontent.com/luukhopman/football-logos/master/logos/${formatted}.png`;
 
   try {
     const res = await fetch(url);
-
-    if (res.ok) {
-      return url;
-    } else {
-      return null;
-    }
+    return res.ok ? url : null;
   } catch {
     return null;
   }
 }
 
-// 🟡 2. WIKIPEDIA (FALLBACK)
+// 🟡 WIKIPEDIA (MEJORADA)
 async function searchWikipedia(team) {
-  const res = await fetch(
-    `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(team)}&format=json&origin=*`,
-    {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (FootballBot)"
+  const queries = [
+    `${team} football club`,
+    `${team} soccer club`
+  ];
+
+  for (const q of queries) {
+    const res = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (FootballBot)"
+        }
       }
-    }
-  );
+    );
 
-  const text = await res.text();
+    const text = await res.text();
 
-  try {
-    const data = JSON.parse(text);
-    return data?.query?.search?.[0]?.title || null;
-  } catch {
-    return null;
+    try {
+      const data = JSON.parse(text);
+      const title = data?.query?.search?.[0]?.title;
+
+      if (title) return title;
+    } catch {}
   }
+
+  return null;
 }
 
 async function getWikipediaImage(title) {
@@ -78,7 +91,7 @@ async function getWikipediaImage(title) {
 
 // 🚀 MAIN
 async function run() {
-  console.log("🚀 Iniciando sistema híbrido...");
+  console.log("🚀 Sistema híbrido PRO iniciado");
 
   const { data: equipos } = await supabase
     .from("equipos")
