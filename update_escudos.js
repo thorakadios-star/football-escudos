@@ -20,7 +20,7 @@ async function run() {
     const { data } = await supabase
       .from("equipos")
       .select("*")
-      .ilike("nombre", equipo.nombre)
+      .ilike("nombre", `%${equipo.nombre}%`)
       .single();
 
     if (!data) {
