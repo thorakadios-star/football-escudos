@@ -18,10 +18,11 @@ async function run() {
 
     // 🔎 buscar equipo en Supabase
     const { data } = await supabase
-      .from("equipos")
-      .select("*")
-      .ilike("nombre", `%${equipo.nombre}%`)
-      .single();
+  .from("equipos")
+  .select("*")
+  .ilike("nombre", `%${equipo.nombre}%`)
+  .limit(1)
+  .single();
 
     if (!data) {
       console.log("❌ No encontrado:", equipo.nombre);
