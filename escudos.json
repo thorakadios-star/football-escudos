@@ -6,5 +6,9 @@
   {
     "nombre": "Jaro",
     "escudo_url": "https://url.com/jaro.png"
+  },
+  {
+    "nombre": "Mariehamn",
+    "escudo_url": "https://url.com/mariehamn.png"
   }
 ]
