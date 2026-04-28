@@ -1,1 +1,10 @@
-
+[
+  {
+    "nombre": "TPS",
+    "escudo_url": "https://url.com/tps.png"
+  },
+  {
+    "nombre": "Jaro",
+    "escudo_url": "https://url.com/jaro.png"
+  }
+]
