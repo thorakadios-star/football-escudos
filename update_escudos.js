@@ -1,16 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
+import dotenv from "dotenv";
 
+dotenv.config();
+
+// 🔑 conectar Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
 
+// 📂 leer escudos desde GitHub repo
 const escudos = JSON.parse(fs.readFileSync("./escudos.json", "utf-8"));
 
 async function run() {
   for (const equipo of escudos) {
 
+    // 🔎 buscar equipo en Supabase
     const { data } = await supabase
       .from("equipos")
       .select("*")
@@ -22,12 +28,17 @@ async function run() {
       continue;
     }
 
-    await supabase
+    // 🖼️ actualizar escudo
+    const { error } = await supabase
       .from("equipos")
       .update({ escudo_url: equipo.escudo_url })
       .eq("id", data.id);
 
-    console.log("✅ OK:", equipo.nombre);
+    if (error) {
+      console.log("❌ Error:", equipo.nombre);
+    } else {
+      console.log("✅ OK:", equipo.nombre);
+    }
   }
 }
 
